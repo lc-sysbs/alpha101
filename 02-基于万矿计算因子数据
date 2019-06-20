@@ -1,3 +1,10 @@
+from WindPy import *
+import numpy as np
+import pandas as pd
+from datetime import datetime
+import matplotlib.pyplot as plt
+w.start()
+
 ## 获取股票池
 s_date = '2014-01-01'
 e_date = '2016-01-01'
@@ -159,5 +166,40 @@ data_alpha =  [alpha_1,alpha_2,alpha_3,alpha_4,alpha_5,alpha_6,alpha_7,alpha_8,a
 # 由于一些因子应用前几个月的数据进行计算，因此初始时期因子为错误值，所以取两年保留一年
 for i in range(len(data_alpha)):
     data_alpha[i] = data_alpha[i].iloc[245:] # 243,245,244,244,244/这些数字为某年交易日数量
-df_101 = pd.concat(data_alpha) # 合并DataFrame
-df_101.to_csv('data/alpha.csv') # 储存数据为csv文件
+df_101 = pd.concat(data_alpha) # 合并各因子的数据
+df_101.to_csv('data/alpha.csv') # 储存数据至csv文件
+
+## 提取数据并转换数据结构
+# 因子数据转化为时间+股票的双重索引格式
+def zhuanhuan(alpha_1,date,stocks,columns = ['alpha']):
+    alpha_year = alpha_1.fillna(value = 0)
+    alpha_year.set_index(date,inplace = True)
+    index = pd.MultiIndex.from_product([date,stocks],names = ['date', 'codes'])
+    df = pd.DataFrame(alpha_year.stack(),columns = columns)
+    alpha = pd.DataFrame(df.values,columns = columns,index = index)
+    return alpha
+
+date_list = ['2014-01-01','2015-01-01','2016-01-01','2017-01-01','2018-01-01','2019-05-30'] # 测试区间，每年更换一次股票池
+data_alpha = []
+div = 101
+# 从csv文件取出因子数据存进列表
+for i in range(5):
+    data_ = pd.read_csv('data/data_alpha_re'+str(i+1)+'.csv')
+    data_.drop(data_.columns[0], axis=1, inplace=True)
+    data_alpha.append(data_)
+# 将之前合并的因子进行分割，并转换数据结构为双重索引，存进二维列表
+for i in range(5):
+    data = []
+    df = data_alpha[i]
+    n = int(len(df)/div)
+    date = w.wsd('000001.SZ','close',date_list[i],date_list[i+1],period = 'D',usedf = True)[1].index
+    stocks = w.wset("sectorconstituent", "date="+date_list[i+1]+";windcode=000906.SH").Data[1]
+    for j in range(div):        
+        d = zhuanhuan(df.iloc[n*j:n*(j+1)],date,stocks,columns = ['alpha'+str(j+1)]) 
+        data.append(d)
+    data_alpha[i] = data
+# 将各因子不同时期的数据进行合并，得到一维列表data存放各因子的双重索引可用数据
+data = []
+for j in range(div):
+    d = pd.concat([data_alpha[0][j],data_alpha[1][j],data_alpha[2][j],data_alpha[3][j],data_alpha[4][j]])
+    data.append(d)
