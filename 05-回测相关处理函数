@@ -23,8 +23,8 @@ def extreme_process_MAD(sample):  # 输入的sample为时间截面的股票因�
         x = sample[name]
         median = x.median()
         MAD = abs(x - median).median()
-        x[x>median+3*1.4826*MAD] = median+3*1.4826*MAD
-        x[x<median-3*1.4826*MAD] = median-3*1.4826*MAD
+        x[x>(median+3*1.4826*MAD)] = median+3*1.4826*MAD
+        x[x<(median-3*1.4826*MAD)] = median-3*1.4826*MAD
         sample[name] = x
     return sample   
 # 行业市值中性化
