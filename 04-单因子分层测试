@@ -46,17 +46,13 @@ def fencengceshi(data,next_ret,num):
 df = fencengceshi(data,next_ret,num=20) # 各因子分组累计收益序列
 dff = fencengceshi(data,next_ret,num=1) # 计算等权基准线
 
-## 各组收益时序图
+## 各组收益时序图,top/middle/bottom
 n = 1
 x = df[n-1]
 y1 = x[0]
 y2 = x[num/2]
 y3 = x[-1]
 d = list(next_ret.index.levels[0])[-len(y1):]
-# bench = list(w.wsd("000906.SH", "pct_chg", bench_date[0], bench_date[-1],usedf=True,Period = "M")[1].PCT_CHG)[-len(y1):]
-# bench = [(i/100)+1 for i in bench]  # 中证800指数累计收益序列
-# for i in range(1,len(bench)):
-#     bench[i] = bench[i]*bench[i-1] 
 bench = dff[1][0][-len(y1):]
 
 plt.subplots(figsize=(15,5))  # 图的长宽设置
